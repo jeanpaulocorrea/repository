@@ -1,0 +1,22 @@
+[0;1;32m●[0m docker.service - Docker Application Container Engine
+     Loaded: loaded (]8;;file://e-57705/usr/lib/systemd/system/docker.service/usr/lib/systemd/system/docker.service]8;;; [0;1;32menabled[0m; preset: [0;1;32menabled[0m)
+     Active: [0;1;32mactive (running)[0m since Thu 2026-02-19 10:39:31 -04; 10s ago
+TriggeredBy: [0;1;32m●[0m docker.socket
+       Docs: ]8;;https://docs.docker.comhttps://docs.docker.com]8;;
+   Main PID: 2671 (dockerd)
+      Tasks: 28
+     Memory: 101.4M (peak: 109.2M)
+        CPU: 366ms
+     CGroup: /system.slice/docker.service
+             └─[0;38;5;245m2671 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock[0m
+
+Feb 19 10:39:30 e-57705 dockerd[2671]: time="2026-02-19T10:39:30.801735990-04:00" level=info msg="Restoring containers: start."
+Feb 19 10:39:30 e-57705 dockerd[2671]: time="2026-02-19T10:39:30.856878294-04:00" level=info msg="Deleting nftables IPv4 rules" error="exit status 1"
+Feb 19 10:39:30 e-57705 dockerd[2671]: time="2026-02-19T10:39:30.901460608-04:00" level=info msg="Deleting nftables IPv6 rules" error="exit status 1"
+Feb 19 10:39:31 e-57705 dockerd[2671]: time="2026-02-19T10:39:31.724694678-04:00" level=info msg="Loading containers: done."
+Feb 19 10:39:31 e-57705 dockerd[2671]: time="2026-02-19T10:39:31.729801102-04:00" level=info msg="Docker daemon" commit=6bc6209 containerd-snapshotter=true storage-driver=overlayfs version=29.2.1
+Feb 19 10:39:31 e-57705 dockerd[2671]: time="2026-02-19T10:39:31.730005383-04:00" level=info msg="Initializing buildkit"
+Feb 19 10:39:31 e-57705 dockerd[2671]: time="2026-02-19T10:39:31.763801131-04:00" level=info msg="Completed buildkit initialization"
+Feb 19 10:39:31 e-57705 dockerd[2671]: time="2026-02-19T10:39:31.769371471-04:00" level=info msg="Daemon has completed initialization"
+Feb 19 10:39:31 e-57705 dockerd[2671]: time="2026-02-19T10:39:31.769467820-04:00" level=info msg="API listen on /run/docker.sock"
+Feb 19 10:39:31 e-57705 systemd[1]: Started docker.service - Docker Application Container Engine.
