@@ -227,7 +227,7 @@ variable "db_subnet_group" {
 variable "rds_proxy" {
   type = object({
     name                = string
-    read_only_endpoind  = string
+    read_only_endpoint  = string
     debug_logging       = bool
     engine_family       = string
     idle_client_timeout = number
@@ -242,7 +242,7 @@ variable "rds_proxy" {
 
   default = {
     name                = "nsse-aurora-serverless-cluster-proxy"
-    read_only_endpoind  = "nsse-aurora-serverless-cluster-readonly"
+    read_only_endpoint  = "nsse-aurora-serverless-cluster-readonly"
     debug_logging       = false
     engine_family       = "POSTGRESQL"
     idle_client_timeout = 300

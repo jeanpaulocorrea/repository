@@ -31,7 +31,6 @@ resource "aws_security_group_rule" "worker" {
   to_port                  = 0
   protocol                 = "-1"
   security_group_id        = aws_security_group.postgressql.id
-  self                     = true
   source_security_group_id = data.aws_security_group.worker.id
 }
 
@@ -41,6 +40,5 @@ resource "aws_security_group_rule" "control_plane" {
   to_port                  = 0
   protocol                 = "-1"
   security_group_id        = aws_security_group.postgressql.id
-  self                     = true
   source_security_group_id = data.aws_security_group.control_plane.id
 }
