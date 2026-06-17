@@ -1,0 +1,114 @@
+name: Rollback BackEnd
+
+on:
+  workflow_dispatch:
+    inputs:
+      service:
+        description: 'Microservice to rollback'
+        required: true
+        type: choice
+        options:
+          - main
+          - order
+          - identity-server
+          - health-checker
+          - notificator
+          - invoice-generator
+      commit:
+        description: 'Optional gitops commit SHA to roll back to. If empty, scans the last 5 commits of kustomization.yml for the previous distinct tag.'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  ECR_REGISTRY: 968225077300.dkr.ecr.us-east-1.amazonaws.com
+  IMAGE_REPO_PREFIX: nsse/production
+  GITOPS_REPO: kenerry-serain/not-so-simple-ecommerce-gitops
+  GITOPS_KUSTOMIZE_DIR: production
+
+jobs:
+  rollback:
+    name: Rollback ${{ inputs.service }}
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ env.GITOPS_REPO }}
+          token: ${{ secrets.GITOPS_PAT }}
+          ref: main
+          fetch-depth: 0
+
+      - uses: imranismail/setup-kustomize@v2
+
+      - name: Resolve previous tag
+        id: target
+        working-directory: ${{ env.GITOPS_KUSTOMIZE_DIR }}
+        env:
+          SERVICE: ${{ inputs.service }}
+          INPUT_COMMIT: ${{ inputs.commit }}
+        run: |
+          IMAGE_NAME="${{ env.ECR_REGISTRY }}/${{ env.IMAGE_REPO_PREFIX }}/${SERVICE}"
+
+          tag_at() {
+            git show "$1":production/kustomization.yml 2>/dev/null \
+              | awk -v img="$IMAGE_NAME" '
+                  $0 ~ "name: "img"$" { found=1; next }
+                  found && /newTag:/ { print $2; exit }
+                '
+          }
+
+          # 1) If a specific commit was provided, take its tag verbatim.
+          if [ -n "$INPUT_COMMIT" ]; then
+            TAG=$(tag_at "$INPUT_COMMIT")
+            if [ -z "$TAG" ]; then
+              echo "Could not read tag for ${SERVICE} at commit ${INPUT_COMMIT}." >&2
+              exit 1
+            fi
+            echo "Target tag from commit ${INPUT_COMMIT}: $TAG"
+            echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # 2) Otherwise, look at the last 5 commits of kustomization.yml and pick
+          #    the most recent one whose tag differs from the current one.
+          CURRENT=$(tag_at HEAD)
+          echo "Current tag: ${CURRENT:-<none>}"
+
+          for sha in $(git log -n 5 --format=%H -- kustomization.yml); do
+            CANDIDATE=$(tag_at "$sha")
+            if [ -n "$CANDIDATE" ] && [ "$CANDIDATE" != "$CURRENT" ]; then
+              echo "Previous tag (from $sha): $CANDIDATE"
+              echo "tag=$CANDIDATE" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done
+
+          echo "No previous distinct tag found in the last 5 commits of kustomization.yml for ${SERVICE}." >&2
+          exit 1
+
+      - name: Set image back to previous tag
+        working-directory: ${{ env.GITOPS_KUSTOMIZE_DIR }}
+        env:
+          SERVICE: ${{ inputs.service }}
+          TAG: ${{ steps.target.outputs.tag }}
+        run: |
+          kustomize edit set image \
+            ${{ env.ECR_REGISTRY }}/${{ env.IMAGE_REPO_PREFIX }}/${SERVICE}=*:${TAG}
+
+      - name: Commit & push
+        env:
+          SERVICE: ${{ inputs.service }}
+          TAG: ${{ steps.target.outputs.tag }}
+        run: |
+          git config user.email "ci-bot@nsse.dev"
+          git config user.name "ci-bot"
+          git add ${{ env.GITOPS_KUSTOMIZE_DIR }}/kustomization.yml
+          if git diff --staged --quiet; then
+            echo "Already on tag ${TAG}; nothing to do."
+            exit 0
+          fi
+          git commit -m "ci(rollback): ${SERVICE} -> ${TAG}"
+          git push
