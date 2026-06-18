@@ -256,3 +256,75 @@ variable "rds_proxy" {
   }
 
 }
+
+variable "document_db_cluster" {
+  type = object({
+    cluster_identifier              = string
+    engine                          = string
+    engine_version                  = string
+    master_username                 = string
+    backup_retention_period         = number
+    preferred_backup_window         = string
+    preferred_maintenance_window    = string
+    final_snapshot_identifier       = string
+    storage_encrypted               = bool
+    vpc_security_group_ids          = list(string)
+    availability_zones              = list(string)
+    enabled_cloudwatch_logs_exports = list(string)
+    subnet_group_name               = string
+    db_cluster_parameter_group_name = string
+    security_group_name             = string
+    security_group_description      = string
+    secret_name                     = string
+    secret_recovery_window_in_days  = number
+    instance_class                  = string
+    instance_identifier             = string
+    parameter_group = object({
+      family = string
+      parameters = list(object({
+        name  = string
+        value = string
+      }))
+    })
+
+  })
+
+  default = {
+    cluster_identifier              = "nssse-documentdb-cluster"
+    engine                          = "docdb"
+    engine_version                  = "5.0.0"
+    master_username                 = "nsse"
+    backup_retention_period         = 7
+    preferred_backup_window         = "01:00-02:00"
+    preferred_maintenance_window    = "sun:03:00-sun:04:00"
+    final_snapshot_identifier       = "nssse-documentdb-cluster-final-snapshot"
+    storage_encrypted               = true
+    vpc_security_group_ids          = ["nsse-documentdb-cluster-secutity-group"]
+    availability_zones              = ["us-east-1a", "us-east-1b"]
+    enabled_cloudwatch_logs_exports = ["profiler", "audit"]
+    subnet_group_name               = "nsse-production--docdb-subnet-group"
+    db_cluster_parameter_group_name = "nsse-documentdb-parameter-group"
+    security_group_name             = "nsse-documentdb-cluster-secutity-group"
+    security_group_description      = "Managing ports for DocumentDB"
+    secret_name                     = "nsse-documentdb-secret-v2"
+    secret_recovery_window_in_days  = 0
+    instance_class                  = "db.t3.medium"
+    instance_identifier             = "nsse-documentdb-cluster-single-instance"
+    parameter_group = {
+      family = "docdb5.0"
+      parameters = [
+        {
+          name  = "audit_logs"
+          value = "enabled"
+        },
+        {
+          name  = "profiler"
+          value = "enabled"
+        }
+      ]
+    }
+
+
+  }
+
+}
