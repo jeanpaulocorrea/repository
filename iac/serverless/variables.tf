@@ -164,13 +164,14 @@ variable "security_groups" {
 
 variable "rds_aurora_cluster" {
   type = object({
-    cluster_identifier           = string
-    engine                       = string
-    engine_mode                  = string
-    database_name                = string
-    master_username              = string
-    availability_zones           = list(string)
-    final_snapshot_identifier    = string
+    cluster_identifier = string
+    engine             = string
+    engine_mode        = string
+    database_name      = string
+    master_username    = string
+    availability_zones = list(string)
+    #final_snapshot_identifier    = string
+    skip_final_snapshot          = bool
     db_subnet_group_name         = string
     deletion_protection          = bool
     storage_encrypted            = bool
@@ -188,13 +189,14 @@ variable "rds_aurora_cluster" {
   })
 
   default = {
-    cluster_identifier           = "nsse-aurora-serverless-cluster"
-    engine                       = "aurora-postgresql"
-    engine_mode                  = "provisioned"
-    database_name                = "NotSoSimpleEcommerce"
-    master_username              = "nsseAdmin"
-    availability_zones           = ["us-east-1a", "us-east-1b"]
-    final_snapshot_identifier    = "nsse-aurora-serverless-cluster-final-snapshot"
+    cluster_identifier = "nsse-aurora-serverless-cluster"
+    engine             = "aurora-postgresql"
+    engine_mode        = "provisioned"
+    database_name      = "NotSoSimpleEcommerce"
+    master_username    = "nsseAdmin"
+    availability_zones = ["us-east-1a", "us-east-1b"]
+    #final_snapshot_identifier    = "nsse-aurora-serverless-cluster-final-snapshot"
+    skip_final_snapshot          = true
     db_subnet_group_name         = "nsse-production-db-subnet-group"
     deletion_protection          = false #deixar em true para ambientes de produção
     storage_encrypted            = true
@@ -259,14 +261,15 @@ variable "rds_proxy" {
 
 variable "document_db_cluster" {
   type = object({
-    cluster_identifier              = string
-    engine                          = string
-    engine_version                  = string
-    master_username                 = string
-    backup_retention_period         = number
-    preferred_backup_window         = string
-    preferred_maintenance_window    = string
-    final_snapshot_identifier       = string
+    cluster_identifier           = string
+    engine                       = string
+    engine_version               = string
+    master_username              = string
+    backup_retention_period      = number
+    preferred_backup_window      = string
+    preferred_maintenance_window = string
+    #final_snapshot_identifier       = string
+    skip_final_snapshot             = bool
     storage_encrypted               = bool
     vpc_security_group_ids          = list(string)
     availability_zones              = list(string)
@@ -290,14 +293,15 @@ variable "document_db_cluster" {
   })
 
   default = {
-    cluster_identifier              = "nssse-documentdb-cluster"
-    engine                          = "docdb"
-    engine_version                  = "5.0.0"
-    master_username                 = "nsse"
-    backup_retention_period         = 7
-    preferred_backup_window         = "01:00-02:00"
-    preferred_maintenance_window    = "sun:03:00-sun:04:00"
-    final_snapshot_identifier       = "nssse-documentdb-cluster-final-snapshot"
+    cluster_identifier           = "nssse-documentdb-cluster"
+    engine                       = "docdb"
+    engine_version               = "5.0.0"
+    master_username              = "nsse"
+    backup_retention_period      = 7
+    preferred_backup_window      = "01:00-02:00"
+    preferred_maintenance_window = "sun:03:00-sun:04:00"
+    #final_snapshot_identifier       = "nssse-documentdb-cluster-final-snapshot"
+    skip_final_snapshot             = true
     storage_encrypted               = true
     vpc_security_group_ids          = ["nsse-documentdb-cluster-secutity-group"]
     availability_zones              = ["us-east-1a", "us-east-1b"]
@@ -327,4 +331,30 @@ variable "document_db_cluster" {
 
   }
 
+}
+
+variable "lambda_order_confirmed" {
+  type = object({
+    package_type  = string
+    source_dir    = string
+    output_path   = string
+    filename      = string
+    function_name = string
+    handler       = string
+    runtime       = string
+    role_name     = string
+    policy_name   = string
+  })
+
+  default = {
+    package_type  = "zip"
+    source_dir    = "lambdas/order-confirmed/build"
+    output_path   = "lambdas/order-confirmed/outputs/package.zip"
+    filename      = "lambdas/order-confirmed/outputs/package.zip"
+    function_name = "OrderConfirmedLambdaFunction"
+    handler       = "index.handler"
+    runtime       = "nodejs24.x"
+    role_name     = "nsse-production-order-confirmed-lambda-role"
+    policy_name   = "nsse-production-order-confirmed-lambda-policy"
+  }
 }
