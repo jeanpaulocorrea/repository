@@ -358,3 +358,29 @@ variable "lambda_order_confirmed" {
     policy_name   = "nsse-production-order-confirmed-lambda-policy"
   }
 }
+
+variable "lambda_layer_node_modules" {
+  type = object({
+    package_type        = string
+    source_dir          = string
+    output_path         = string
+    filename            = string
+    layer_name          = string
+    compatible_runtimes = list(string)
+  })
+
+  default = {
+    package_type        = "zip"
+    source_dir          = "lambdas/layers/dependencies"
+    output_path         = "lambdas/order-confirmed/outputs/node_modules_layers.zip"
+    filename            = "lambdas/order-confirmed/outputs/node_modules_layers.zip"
+    layer_name          = "node_modules"
+    compatible_runtimes = ["nodejs24.x"]
+  }
+}
+
+variable "domain" {
+  type    = string
+  default = "devopsnanuvem.com"
+
+}
